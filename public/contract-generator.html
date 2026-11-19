@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Zare Innovations — Contract Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root {
+  --ink: #0f0e0c; --paper: #faf8f4; --cream: #f2ede3;
+  --gold: #c9a84c; --gold-light: #e8d5a3; --gold-dark: #a07830;
+  --muted: #8a8070; --border: #ddd8cc; --success: #2d6a4f;
+  --error: #8b2635; --white: #ffffff;
+  --shadow: 0 4px 24px rgba(15,14,12,0.08);
+  --shadow-lg: 0 12px 48px rgba(15,14,12,0.14);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+body::before { content: ''; position: fixed; inset: 0; background-image: radial-gradient(ellipse at 20% 10%, rgba(201,168,76,0.06) 0%, transparent 60%), radial-gradient(ellipse at 80% 90%, rgba(201,168,76,0.04) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+
+/* HEADER */
+header { position: relative; z-index: 10; padding: 20px 48px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: rgba(250,248,244,0.95); backdrop-filter: blur(8px); }
+.logo { display: flex; flex-direction: column; gap: 2px; }
+.logo-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; letter-spacing: 0.02em; }
+.logo-sub { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-badge { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); background: var(--cream); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; }
+.header-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+#user-chip { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); }
+#user-chip img { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--gold-light); }
+#user-chip span { font-weight: 500; color: var(--ink); }
+#sign-out-btn { background: none; border: 1px solid var(--border); border-radius: 5px; padding: 4px 10px; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+#sign-out-btn:hover { border-color: var(--ink); color: var(--ink); }
+.btn-back { display: flex; align-items: center; gap: 7px; background: none; border: 1.5px solid var(--border); border-radius: 7px; padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 0.83rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.btn-back:hover { border-color: var(--ink); color: var(--ink); }
+
+/* TABS */
+.tab-bar { position: relative; z-index: 9; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: stretch; padding: 0 48px; }
+.tab-btn { font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; color: var(--muted); background: none; border: none; border-bottom: 2.5px solid transparent; padding: 16px 20px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { color: var(--gold-dark); border-bottom-color: var(--gold); }
+
+/* DROPDOWN TAB */
+.tab-dropdown { position: relative; display: flex; align-items: stretch; }
+.tab-dropdown-btn {
+  font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500;
+  color: var(--muted); background: none; border: none;
+  border-bottom: 2.5px solid transparent;
+  padding: 16px 20px; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.tab-dropdown-btn:hover { color: var(--ink); }
+.tab-dropdown-btn.active { color: var(--gold-dark); border-bottom-color: var(--gold); }
+.tab-dropdown-btn svg { transition: transform 0.2s; }
+.tab-dropdown:hover .tab-dropdown-btn svg { transform: rotate(180deg); }
+
+.tab-dropdown-menu {
+  position: absolute; top: 100%; left: 0;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 0 0 10px 10px; min-width: 180px;
+  box-shadow: var(--shadow-lg); z-index: 50;
+  opacity: 0; pointer-events: none;
+  transform: translateY(-6px); transition: all 0.18s ease;
+  overflow: hidden;
+}
+.tab-dropdown:hover .tab-dropdown-menu {
+  opacity: 1; pointer-events: all; transform: translateY(0);
+}
+.tab-dropdown-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 12px 18px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+  color: var(--muted); background: none; border: none;
+  cursor: pointer; transition: all 0.15s; text-align: left;
+}
+.tab-dropdown-item:hover { background: var(--cream); color: var(--ink); }
+.tab-dropdown-item.active { color: var(--gold-dark); background: rgba(201,168,76,0.06); }
+.tab-dropdown-item .item-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border); flex-shrink: 0; transition: background 0.15s;
+}
+.tab-dropdown-item:hover .item-dot,
+.tab-dropdown-item.active .item-dot { background: var(--gold); }
+
+/* MAIN */
+main { position: relative; z-index: 1; max-width: 820px; margin: 0 auto; padding: 52px 32px 80px; }
+.screen { animation: fadeUp 0.45s ease both; }
+.screen-header { margin-bottom: 48px; }
+.screen-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.screen-label::before { content: ''; display: block; width: 24px; height: 1.5px; background: var(--gold); }
+.screen-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; line-height: 1.2; }
+.screen-desc { color: var(--muted); font-size: 0.9rem; margin-top: 8px; font-weight: 300; line-height: 1.6; }
+
+/* FORM */
+.form-section { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 36px; margin-bottom: 20px; box-shadow: var(--shadow); }
+.section-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--cream); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-row:last-child { margin-bottom: 0; }
+.field { display: flex; flex-direction: column; gap: 7px; }
+.field label { font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em; }
+.field label span.req { color: var(--gold); margin-left: 3px; }
+.field input, .field textarea, .field select {
+  font-family: 'DM Sans', sans-serif; font-size: 0.9rem; color: var(--ink);
+  background: var(--paper); border: 1.5px solid var(--border); border-radius: 7px;
+  padding: 11px 14px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; resize: none;
+}
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); background: var(--white); }
+.field input::placeholder, .field textarea::placeholder { color: #bbb5a8; }
+.field .hint { font-size: 0.75rem; color: var(--muted); font-weight: 300; }
+.calc-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(201,168,76,0.1); border: 1px solid var(--gold-light); border-radius: 5px; padding: 6px 12px; font-size: 0.8rem; color: var(--gold-dark); font-weight: 500; margin-top: 4px; min-height: 32px; }
+
+/* BULLET EDITOR */
+.bullet-mode-toggle { display: flex; margin-bottom: 12px; border: 1.5px solid var(--border); border-radius: 7px; overflow: hidden; width: fit-content; }
+.mode-btn { background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500; padding: 7px 16px; color: var(--muted); transition: all 0.2s; }
+.mode-btn.active { background: var(--ink); color: var(--paper); }
+.mode-btn:first-child { border-right: 1px solid var(--border); }
+.bullet-editor { background: var(--paper); border: 1.5px solid var(--border); border-radius: 7px; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+.bullet-editor:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); }
+.bullet-list { padding: 10px 8px; min-height: 120px; }
+.bullet-item { display: flex; align-items: flex-start; gap: 8px; padding: 3px 4px; border-radius: 5px; margin-bottom: 2px; }
+.bullet-item:hover { background: var(--cream); }
+.bullet-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; margin-top: 9px; }
+.bullet-input { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--ink); background: transparent; border: none; outline: none; padding: 4px 0; line-height: 1.6; }
+.bullet-del { background: none; border: none; cursor: pointer; color: #ccc; padding: 4px; border-radius: 3px; transition: color 0.15s; font-size: 1rem; line-height: 1; flex-shrink: 0; }
+.bullet-del:hover { color: var(--error); }
+.bullet-actions { border-top: 1px solid var(--border); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
+.add-bullet-btn { background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 500; color: var(--gold-dark); display: flex; align-items: center; gap: 6px; padding: 4px 0; transition: color 0.2s; }
+.add-bullet-btn:hover { color: var(--gold); }
+.bullet-count { font-size: 0.75rem; color: var(--muted); }
+.bulk-area { display: flex; flex-direction: column; gap: 10px; }
+.bulk-textarea { font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--ink); background: var(--paper); border: 1.5px solid var(--border); border-radius: 7px; padding: 14px; outline: none; min-height: 140px; line-height: 1.7; transition: border-color 0.2s, box-shadow 0.2s; resize: vertical; }
+.bulk-textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); background: var(--white); }
+.bulk-textarea::placeholder { color: #bbb5a8; }
+.bulk-convert-btn { align-self: flex-start; background: var(--ink); border: none; border-radius: 7px; padding: 9px 20px; font-family: 'DM Sans', sans-serif; font-size: 0.83rem; font-weight: 500; color: var(--paper); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 7px; }
+.bulk-convert-btn:hover { background: #2a2820; }
+
+/* BUTTONS */
+.form-actions { display: flex; gap: 12px; align-items: center; justify-content: flex-end; margin-top: 32px; }
+.btn-reset { background: none; border: 1.5px solid var(--border); border-radius: 7px; padding: 12px 24px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.btn-reset:hover { border-color: var(--ink); color: var(--ink); }
+.btn-primary { background: var(--ink); border: none; border-radius: 7px; padding: 12px 28px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--paper); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+.btn-primary:hover { background: #2a2820; transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-gold { background: var(--gold); border: none; border-radius: 7px; padding: 12px 28px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--white); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+.btn-gold:hover { background: var(--gold-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,168,76,0.3); }
+.btn-gold:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-outline { background: none; border: 1.5px solid var(--border); border-radius: 7px; padding: 12px 22px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; color: var(--ink); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.btn-outline:hover { border-color: var(--gold); color: var(--gold-dark); }
+
+/* PREVIEW */
+.preview-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+.preview-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 600; }
+.preview-subtitle { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+.preview-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.preview-container { background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-lg); overflow: hidden; }
+.preview-header-bar { background: var(--cream); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; gap: 8px; }
+.preview-dot { width: 11px; height: 11px; border-radius: 50%; }
+.preview-dot:nth-child(1) { background: #f87171; }
+.preview-dot:nth-child(2) { background: #fbbf24; }
+.preview-dot:nth-child(3) { background: #34d399; }
+.preview-url { flex: 1; background: var(--white); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 0.75rem; color: var(--muted); margin-left: 8px; }
+
+/* GOOGLE DOCS RENDERED PREVIEW */
+#doc-preview-frame {
+  width: 100%;
+  min-height: 700px;
+  max-height: 780px;
+  overflow-y: auto;
+  background: white;
+  padding: 0;
+}
+#doc-preview-frame::-webkit-scrollbar { width: 6px; }
+#doc-preview-frame::-webkit-scrollbar-track { background: var(--cream); }
+#doc-preview-frame::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Docs-faithful rendering */
+.doc-page { padding: 72px 80px; font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #000; }
+.doc-paragraph { margin-bottom: 0; min-height: 1.5em; }
+.doc-paragraph.spacing-after { margin-bottom: 8pt; }
+.doc-run-bold { font-weight: bold; }
+.doc-run-italic { font-style: italic; }
+.doc-run-underline { text-decoration: underline; }
+.doc-run-bold.doc-run-italic { font-weight: bold; font-style: italic; }
+.doc-align-center { text-align: center; }
+.doc-align-right { text-align: right; }
+.doc-align-justified { text-align: justify; }
+.doc-heading-1 { font-size: 14pt; font-weight: bold; margin-top: 12pt; margin-bottom: 4pt; }
+.doc-heading-2 { font-size: 12pt; font-weight: bold; margin-top: 10pt; margin-bottom: 3pt; }
+.doc-heading-3 { font-size: 11pt; font-weight: bold; margin-top: 8pt; margin-bottom: 2pt; }
+.doc-list-item { display: flex; gap: 8px; margin-bottom: 2pt; padding-left: 18pt; }
+.doc-list-bullet::before { content: '•'; flex-shrink: 0; margin-right: 4px; }
+.doc-table { width: 100%; border-collapse: collapse; margin: 8pt 0; }
+.doc-table td { padding: 6pt 8pt; vertical-align: top; border: 1px solid #ccc; font-size: 11pt; }
+.doc-table td.no-border { border: none; }
+
+/* ACCESS DENIED */
+#access-denied-screen { text-align: center; padding: 80px 32px; }
+
+/* LOADING / TOAST */
+#loading-overlay { position: fixed; inset: 0; background: rgba(250,248,244,0.92); backdrop-filter: blur(4px); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+#loading-overlay.show { display: flex; }
+.spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.loading-text { font-size: 0.88rem; color: var(--muted); }
+#toast { position: fixed; bottom: 32px; right: 32px; padding: 14px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; box-shadow: var(--shadow-lg); z-index: 200; transform: translateY(20px); opacity: 0; transition: all 0.3s; max-width: 380px; }
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { background: #f0faf5; border-left: 4px solid var(--success); color: var(--success); }
+#toast.error { background: #fdf2f4; border-left: 4px solid var(--error); color: var(--error); }
+#toast.info { background: #fffbeb; border-left: 4px solid var(--gold); color: var(--gold-dark); }
+
+.hidden { display: none !important; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+  header { padding: 20px 24px; }
+  .tab-bar { padding: 0 24px; }
+  main { padding: 40px 20px 60px; }
+  .form-row { grid-template-columns: 1fr; }
+  .form-section { padding: 24px 20px; }
+  .doc-page { padding: 32px 24px; }
+}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">Working...</div></div>
+<div id="toast"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-name">Zare Innovations</div>
+    <div class="logo-sub">Contract Generator</div>
+  </div>
+  <div class="header-right">
+    <div id="header-badge" class="header-badge">Sign in required for preview</div>
+    <div id="user-chip" class="hidden">
+      <img id="user-avatar" src="" alt=""/>
+      <span id="user-name"></span>
+      <button id="sign-out-btn" onclick="signOut()">Sign out</button>
+    </div>
+    <button id="back-btn" class="btn-back hidden" onclick="goHome()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </button>
+  </div>
+</header>
+
+<div class="tab-bar" id="tab-bar">
+  <button class="tab-btn active" id="tab-employee" onclick="switchTab('emp')">Employee Contract</button>
+
+  <div class="tab-dropdown" id="tab-client-dropdown">
+    <button class="tab-dropdown-btn" id="tab-client">
+      Client
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="tab-dropdown-menu">
+      <button class="tab-dropdown-item" id="tab-msa" onclick="switchTab('msa')">
+        <span class="item-dot"></span>
+        Client MSA
+      </button>
+      <button class="tab-dropdown-item" id="tab-sow" onclick="switchTab('sow')">
+        <span class="item-dot"></span>
+        SOW
+      </button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- ACCESS DENIED -->
+  <div id="access-denied-screen" class="screen hidden">
+    <div style="width:64px;height:64px;margin:0 auto 28px;background:#8b2635;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(139,38,53,0.25);">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    </div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;margin-bottom:12px;">Access Denied</h2>
+    <p style="color:var(--muted);font-size:0.92rem;max-width:400px;margin:0 auto 8px;line-height:1.7;"><strong id="denied-email" style="color:var(--ink);"></strong> is not authorised to use this tool.</p>
+    <p style="color:var(--muted);font-size:0.88rem;max-width:400px;margin:0 auto 32px;line-height:1.7;">Only <strong>@zareinnovations.com</strong> accounts are allowed.</p>
+    <button onclick="signOut()" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:var(--ink);border:none;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:500;color:var(--paper);cursor:pointer;">Try a different account</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       EMPLOYEE CONTRACT — FORM
+  ══════════════════════════════ -->
+  <div id="emp-form-screen" class="screen">
+    <div class="screen-header">
+      <div class="screen-label">Employee Contract</div>
+      <div class="screen-title">Employee Details</div>
+      <div class="screen-desc">Fill in the fields below. Clicking "Preview Contract" will sign you in with Google and render the exact contract formatting.</div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Employee Information</div>
+      <div class="form-row">
+        <div class="field"><label>Employee Name <span class="req">*</span></label><input type="text" id="e-name" placeholder="e.g. Abebe Girma"/></div>
+        <div class="field"><label>Job Title <span class="req">*</span></label><input type="text" id="e-title" placeholder="e.g. Software Engineer"/></div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Residential Address <span class="req">*</span></label><input type="text" id="e-address" placeholder="e.g. Addis Ababa, Bole Sub-City, Woreda 03"/></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Contract Terms</div>
+      <div class="form-row">
+        <div class="field"><label>Effective Date <span class="req">*</span></label><input type="date" id="e-start"/></div>
+        <div class="field"><label>Contract End Date <span class="req">*</span></label><input type="date" id="e-end"/></div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Monthly Salary <span class="req">*</span></label>
+          <input type="text" id="e-salary" placeholder='e.g. ETB 25,000 or "$3,500"'/>
+          <span class="hint">Include currency and full amount as it should appear in the contract.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Roles & Responsibilities</div>
+      <div class="field">
+        <label>Responsibilities <span class="req">*</span></label>
+        <div class="bullet-mode-toggle">
+          <button class="mode-btn active" id="e-mode-bullet" onclick="setMode('e','bullet')">Bullet editor</button>
+          <button class="mode-btn" id="e-mode-bulk" onclick="setMode('e','bulk')">Bulk paste</button>
+        </div>
+        <div id="e-bullet-wrap">
+          <div class="bullet-editor">
+            <div class="bullet-list" id="e-bullet-list"></div>
+            <div class="bullet-actions">
+              <button class="add-bullet-btn" onclick="addBullet('e')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add responsibility
+              </button>
+              <span class="bullet-count" id="e-bullet-count">0 items</span>
+            </div>
+          </div>
+          <span class="hint" style="margin-top:6px;display:block;">Press Enter to add the next bullet. Backspace on an empty bullet removes it.</span>
+        </div>
+        <div id="e-bulk-wrap" class="hidden bulk-area">
+          <textarea class="bulk-textarea" id="e-bulk-text" placeholder="Paste all responsibilities here — one per line or separated by dashes/bullets."></textarea>
+          <button class="bulk-convert-btn" onclick="convertBulk('e')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            Convert to bullets
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-reset" onclick="resetForm('emp')">Clear form</button>
+      <button class="btn-primary" onclick="triggerPreview('emp')">
+        Preview Contract
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- EMPLOYEE PREVIEW -->
+  <div id="emp-preview-screen" class="screen hidden">
+    <div class="preview-toolbar">
+      <div>
+        <div class="screen-label" style="margin-bottom:4px;">Preview — Employee Contract</div>
+        <div class="preview-name" id="emp-prev-name">—</div>
+        <div class="preview-subtitle" id="emp-prev-sub">—</div>
+      </div>
+      <div class="preview-actions">
+        <button class="btn-outline" onclick="doOpenDocs('emp')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Open in Google Docs
+        </button>
+        <button class="btn-gold" onclick="doDownloadPDF('emp')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Download PDF
+        </button>
+      </div>
+    </div>
+    <div class="preview-container">
+      <div class="preview-header-bar">
+        <div class="preview-dot"></div><div class="preview-dot"></div><div class="preview-dot"></div>
+        <div class="preview-url" id="emp-prev-url">Contract Preview</div>
+      </div>
+      <div id="doc-preview-frame"><div class="doc-page" id="emp-doc-content"></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       CLIENT MSA — FORM
+  ══════════════════════════════ -->
+  <div id="msa-form-screen" class="screen hidden">
+    <div class="screen-header">
+      <div class="screen-label">Client MSA</div>
+      <div class="screen-title">Client Details</div>
+      <div class="screen-desc">Fill in the fields below. Clicking "Preview Contract" will sign you in with Google and render the exact contract formatting.</div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Client Information</div>
+      <div class="form-row">
+        <div class="field"><label>Client Company Name <span class="req">*</span></label><input type="text" id="m-name" placeholder="e.g. Joveo, Inc."/></div>
+        <div class="field"><label>Client Description <span class="req">*</span></label><input type="text" id="m-desc" placeholder="e.g. a recruitment marketing technology"/></div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Client Address <span class="req">*</span></label><input type="text" id="m-address" placeholder="e.g. 101 Jefferson Dr, Menlo Park, CA 94025, United States"/></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Agreement Terms</div>
+      <div class="form-row">
+        <div class="field"><label>Effective Date <span class="req">*</span></label><input type="date" id="m-start" oninput="updateValidity()"/></div>
+        <div class="field"><label>Expected End Date <span class="req">*</span></label><input type="date" id="m-end" oninput="updateValidity()"/></div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Total Validity Duration</label>
+          <div class="calc-badge" id="m-validity-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Auto-calculated from dates above
+          </div>
+          <span class="hint">e.g. "One (1) Year", "Six (6) Months"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Financial Terms</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Working Hours Per Month <span class="req">*</span></label>
+          <input type="number" id="m-hours" placeholder="e.g. 192" min="1" step="1"/>
+          <span class="hint">Appears as "192 hours per month"</span>
+        </div>
+        <div class="field">
+          <label>Fee Amount <span class="req">*</span></label>
+          <input type="number" id="m-fee" placeholder="e.g. 5000" min="0" step="0.01"/>
+          <span class="hint">Numbers only — e.g. 5000. Currency symbol is added automatically.</span>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>PTO Days Per Month <span class="req">*</span></label>
+          <input type="number" id="m-pto" placeholder="e.g. 1.75" min="0" step="0.01"/>
+          <span class="hint">Appears as "1.75 paid time off (PTO) days per month"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-reset" onclick="resetForm('msa')">Clear form</button>
+      <button class="btn-primary" onclick="triggerPreview('msa')">
+        Preview Contract
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- MSA PREVIEW -->
+  <div id="msa-preview-screen" class="screen hidden">
+    <div class="preview-toolbar">
+      <div>
+        <div class="screen-label" style="margin-bottom:4px;">Preview — Client MSA</div>
+        <div class="preview-name" id="msa-prev-name">—</div>
+        <div class="preview-subtitle" id="msa-prev-sub">—</div>
+      </div>
+      <div class="preview-actions">
+        <button class="btn-outline" onclick="doOpenDocs('msa')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Open in Google Docs
+        </button>
+        <button class="btn-gold" onclick="doDownloadPDF('msa')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Download PDF
+        </button>
+      </div>
+    </div>
+    <div class="preview-container">
+      <div class="preview-header-bar">
+        <div class="preview-dot"></div><div class="preview-dot"></div><div class="preview-dot"></div>
+        <div class="preview-url" id="msa-prev-url">Contract Preview</div>
+      </div>
+      <div id="doc-preview-frame-msa"><div class="doc-page" id="msa-doc-content"></div></div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════
+       SOW — FORM
+  ══════════════════════════════ -->
+  <div id="sow-form-screen" class="screen hidden">
+    <div class="screen-header">
+      <div class="screen-label">Statement of Work</div>
+      <div class="screen-title">SOW Details</div>
+      <div class="screen-desc">Fill in the fields below. Clicking "Preview Contract" will sign you in with Google and render the exact SOW formatting.</div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Agreement Reference</div>
+      <div class="form-row">
+        <div class="field"><label>SOW Number <span class="req">*</span></label><input type="text" id="s-sow-number" placeholder="e.g. 001 or 2026-01"/></div>
+        <div class="field"><label>Client Name <span class="req">*</span></label><input type="text" id="s-client-name" placeholder="e.g. Joveo, Inc."/></div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Effective Date <span class="req">*</span></label>
+          <input type="date" id="s-effective-date"/>
+          <span class="hint">Will appear as "10th day of February, 2026"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Resource Details</div>
+      <div class="form-row">
+        <div class="field"><label>Employee Name <span class="req">*</span></label><input type="text" id="s-employee-name" placeholder="e.g. Abebe Girma"/></div>
+        <div class="field"><label>Employee Role <span class="req">*</span></label><input type="text" id="s-employee-role" placeholder="e.g. Software Engineer"/></div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Engagement Type <span class="req">*</span></label>
+          <select id="s-engagement-type">
+            <option value="" disabled selected>Select engagement type</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+          </select>
+        </div>
+        <div class="field"><label>Work Location <span class="req">*</span></label><input type="text" id="s-work-location" placeholder="e.g. Remote — Addis Ababa, Ethiopia"/></div>
+      </div>
+      <div class="form-row full">
+        <div class="field"><label>Probation Period <span class="req">*</span></label><input type="text" id="s-probation" placeholder="e.g. 30 days or One (1) month"/></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-label">Financial Terms</div>
+      <div class="form-row">
+        <div class="field">
+          <label>Monthly Fee <span class="req">*</span></label>
+          <input type="number" id="s-monthly-fee" placeholder="e.g. 5000" min="0" step="0.01"/>
+          <span class="hint">Numbers only — e.g. 5000. Currency symbol is added automatically.</span>
+        </div>
+        <div class="field">
+          <label>Working Hours Per Month <span class="req">*</span></label>
+          <input type="number" id="s-working-hours" placeholder="e.g. 192" min="1" step="1"/>
+          <span class="hint">Appears as "192 hours per month"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-reset" onclick="resetForm('sow')">Clear form</button>
+      <button class="btn-primary" onclick="triggerPreview('sow')">
+        Preview Contract
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SOW PREVIEW -->
+  <div id="sow-preview-screen" class="screen hidden">
+    <div class="preview-toolbar">
+      <div>
+        <div class="screen-label" style="margin-bottom:4px;">Preview — Statement of Work</div>
+        <div class="preview-name" id="sow-prev-name">—</div>
+        <div class="preview-subtitle" id="sow-prev-sub">—</div>
+      </div>
+      <div class="preview-actions">
+        <button class="btn-outline" onclick="doOpenDocs('sow')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Open in Google Docs
+        </button>
+        <button class="btn-gold" onclick="doDownloadPDF('sow')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Download PDF
+        </button>
+      </div>
+    </div>
+    <div class="preview-container">
+      <div class="preview-header-bar">
+        <div class="preview-dot"></div><div class="preview-dot"></div><div class="preview-dot"></div>
+        <div class="preview-url" id="sow-prev-url">SOW Preview</div>
+      </div>
+      <div id="doc-preview-frame-sow"><div class="doc-page" id="sow-doc-content"></div></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── CONFIG ────────────────────────────────────────
+// Hosted at: https://zareinnovations.com/contract-generator.html
+const GOOGLE_CLIENT_ID = '143847906983-0h1f8nvq9svb8stkvpd7de2og2d8m7iu.apps.googleusercontent.com';
+const EMP_TEMPLATE_ID  = '1DhXGvOMED_35xzd7iwmeJiAdkrVTt3hWLI_X1-P3V3A';
+const MSA_TEMPLATE_ID  = '1JhDS_NjI7aarnY83loNIwOKaBQ8AwsTJeaTp0vcULN0';
+const SOW_TEMPLATE_ID  = '1tRE8vOfkfYak-zIVw7rtaGjvvkQRcTsWRJqm9Q_dYF4';
+const COMPANY_ADDRESS  = '651 N Broad St, Suite 201, Middletown, Delaware 19709';
+const ALLOWED_DOMAIN   = 'zareinnovations.com';
+const SCOPES = ['https://www.googleapis.com/auth/drive','https://www.googleapis.com/auth/drive.file','https://www.googleapis.com/auth/documents','profile','email'].join(' ');
+
+// ── STATE ─────────────────────────────────────────
+let accessToken  = null;
+let tokenClient  = null;
+let pendingAction = null; // { type: 'preview'|'docs'|'pdf', contract: 'emp'|'msa' }
+let currentTab   = 'emp';
+let previewDocId = { emp: null, msa: null, sow: null }; // store filled doc IDs for reuse
+
+// ── AUTH ──────────────────────────────────────────
+function initTokenClient() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if (resp.error) { showToast('Sign-in failed: ' + resp.error, 'error'); hideLoading(); return; }
+      accessToken = resp.access_token;
+      try {
+        await fetchUserProfile();
+        if (pendingAction) {
+          const pa = pendingAction; pendingAction = null;
+          if (pa.type === 'preview') await doPreview(pa.contract);
+          else if (pa.type === 'docs') await doOpenDocs(pa.contract);
+          else if (pa.type === 'pdf')  await doDownloadPDF(pa.contract);
+        }
+      } catch(e) { hideLoading(); console.error(e); }
+    }
+  });
+}
+
+async function fetchUserProfile() {
+  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${accessToken}` } });
+  const p = await res.json();
+  const email = p.email || '';
+  if (!email.endsWith('@' + ALLOWED_DOMAIN)) {
+    accessToken = null; hideLoading();
+    showAccessDenied(email);
+    throw new Error('Unauthorized domain');
+  }
+  document.getElementById('user-avatar').src = p.picture || '';
+  document.getElementById('user-name').textContent = p.name || email;
+  document.getElementById('user-chip').classList.remove('hidden');
+  document.getElementById('header-badge').classList.add('hidden');
+}
+
+function signOut() {
+  // Delete any lingering draft docs from Drive before clearing session
+  if (accessToken) {
+    Object.entries(previewDocId).forEach(([, id]) => {
+      if (id) {
+        fetch(`https://www.googleapis.com/drive/v3/files/${id}`, {
+          method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` }
+        }).catch(() => {});
+      }
+    });
+  }
+  accessToken = null;
+  previewDocId = { emp: null, msa: null, sow: null };
+  document.getElementById('user-chip').classList.add('hidden');
+  document.getElementById('header-badge').classList.remove('hidden');
+  document.getElementById('access-denied-screen').classList.add('hidden');
+  showScreen(currentTab + '-form');
+  showToast('Signed out.', 'info');
+}
+
+function showAccessDenied(email) {
+  document.getElementById('denied-email').textContent = email;
+  hideAllScreens();
+  document.getElementById('access-denied-screen').classList.remove('hidden');
+  document.getElementById('back-btn').classList.add('hidden');
+}
+
+function requireAuth(action) {
+  if (accessToken) { executePending(action); return; }
+  pendingAction = action;
+  showLoading('Waiting for Google sign-in...');
+  tokenClient = null; initTokenClient();
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+function executePending(action) {
+  if (action.type === 'preview') doPreview(action.contract);
+  else if (action.type === 'docs') doOpenDocs(action.contract);
+  else if (action.type === 'pdf')  doDownloadPDF(action.contract);
+}
+
+// ── TABS ──────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+
+  // Employee tab
+  document.getElementById('tab-employee').classList.toggle('active', tab === 'emp');
+
+  // Client dropdown button — active when any client tab is selected
+  const isClient = tab === 'msa' || tab === 'sow';
+  document.getElementById('tab-client').classList.toggle('active', isClient);
+
+  // Dropdown items
+  document.getElementById('tab-msa').classList.toggle('active', tab === 'msa');
+  if (document.getElementById('tab-sow')) {
+    document.getElementById('tab-sow').classList.toggle('active', tab === 'sow');
+  }
+
+  showScreen(tab + '-form');
+}
+
+// ── SCREENS ───────────────────────────────────────
+const SCREENS = ['emp-form','emp-preview','msa-form','msa-preview','sow-form','sow-preview','access-denied'];
+function hideAllScreens() { SCREENS.forEach(s => document.getElementById(s + '-screen').classList.add('hidden')); }
+function showScreen(name) {
+  hideAllScreens();
+  document.getElementById(name + '-screen').classList.remove('hidden');
+  const isPreview = name.includes('preview');
+  document.getElementById('back-btn').classList.toggle('hidden', !isPreview);
+  document.getElementById('tab-bar').classList.toggle('hidden', isPreview);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function goHome() { showScreen(currentTab + '-form'); }
+
+// ── DATE HELPERS ──────────────────────────────────
+function getOrdinalSuffix(day) {
+  // 11th, 12th, 13th are always 'th' — all other teens too
+  if (day >= 11 && day <= 13) return 'th';
+  switch (day % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+}
+function ordinalDate(val) {
+  if (!val) return '';
+  const d = new Date(val + 'T12:00:00');
+  if (isNaN(d)) return '';
+  const day = d.getDate();
+  return `${day}${getOrdinalSuffix(day)} day of ${d.toLocaleDateString('en-US',{month:'long'})}, ${d.getFullYear()}`;
+}
+function shortOrdinalDate(val) {
+  if (!val) return '';
+  const d = new Date(val + 'T12:00:00');
+  if (isNaN(d)) return '';
+  const day = d.getDate();
+  return `${day}${getOrdinalSuffix(day)} of ${d.toLocaleDateString('en-US',{month:'long'})}, ${d.getFullYear()}`;
+}
+function stdDate(val) {
+  if (!val) return '';
+  const d = new Date(val + 'T12:00:00');
+  return isNaN(d) ? '' : d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+}
+
+const ONES = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve'];
+function calcValidity(s, e) {
+  if (!s || !e) return '';
+  const start = new Date(s + 'T12:00:00'), end = new Date(e + 'T12:00:00');
+  if (isNaN(start) || isNaN(end) || end <= start) return '';
+  let years = end.getFullYear() - start.getFullYear();
+  let months = end.getMonth() - start.getMonth();
+  if (end.getDate() < start.getDate()) months--;
+  if (months < 0) { years--; months += 12; }
+  if (years > 0 && months === 0) return `${ONES[years]||years} (${years}) Year${years>1?'s':''}`;
+  if (years === 0 && months > 0) return `${ONES[months]||months} (${months}) Month${months>1?'s':''}`;
+  if (years > 0 && months > 0)   return `${ONES[years]||years} (${years}) Year${years>1?'s':''} and ${ONES[months]||months} (${months}) Month${months>1?'s':''}`;
+  return `${Math.round((end-start)/86400000)} Days`;
+}
+
+function updateValidity() {
+  const result = calcValidity(document.getElementById('m-start').value, document.getElementById('m-end').value);
+  const badge = document.getElementById('m-validity-badge');
+  badge.innerHTML = result
+    ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ${esc(result)}`
+    : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Auto-calculated from dates above`;
+}
+
+// ── BULLET EDITOR ─────────────────────────────────
+function addBullet(pfx, text='', focus=true) {
+  const list = document.getElementById(pfx+'-bullet-list');
+  const item = document.createElement('div'); item.className='bullet-item';
+  item.innerHTML=`<div class="bullet-dot"></div><input class="bullet-input" type="text" placeholder="Responsibility..." value="${escAttr(text)}" onkeydown="bulletKey(event,this,'${pfx}')" oninput="updateCount('${pfx}')"/><button class="bullet-del" onclick="removeBullet(this,'${pfx}')">×</button>`;
+  list.appendChild(item);
+  if(focus) item.querySelector('.bullet-input').focus();
+  updateCount(pfx);
+}
+function removeBullet(btn,pfx){btn.closest('.bullet-item').remove();updateCount(pfx);}
+function bulletKey(e,input,pfx){
+  if(e.key==='Enter'){e.preventDefault();addBullet(pfx);}
+  else if(e.key==='Backspace'&&input.value===''){e.preventDefault();const item=input.closest('.bullet-item'),prev=item.previousElementSibling;item.remove();updateCount(pfx);if(prev)prev.querySelector('.bullet-input').focus();}
+}
+function updateCount(pfx){const n=document.querySelectorAll('#'+pfx+'-bullet-list .bullet-input').length;document.getElementById(pfx+'-bullet-count').textContent=`${n} item${n!==1?'s':''}`;}
+function getBullets(pfx){return[...document.querySelectorAll('#'+pfx+'-bullet-list .bullet-input')].map(i=>i.value.trim()).filter(Boolean);}
+function setMode(pfx,mode){
+  document.getElementById(pfx+'-mode-bullet').classList.toggle('active',mode==='bullet');
+  document.getElementById(pfx+'-mode-bulk').classList.toggle('active',mode==='bulk');
+  document.getElementById(pfx+'-bullet-wrap').classList.toggle('hidden',mode==='bulk');
+  document.getElementById(pfx+'-bulk-wrap').classList.toggle('hidden',mode==='bullet');
+}
+function convertBulk(pfx){
+  const raw=document.getElementById(pfx+'-bulk-text').value.trim();
+  if(!raw){showToast('Please paste some responsibilities first.','error');return;}
+  const lines=raw.split('\n').map(l=>l.replace(/^[\s\-•*\d.)]+/,'').trim()).filter(Boolean);
+  if(!lines.length){showToast('Could not parse any responsibilities.','error');return;}
+  document.getElementById(pfx+'-bullet-list').innerHTML='';
+  lines.forEach(l=>addBullet(pfx,l,false));updateCount(pfx);
+  document.getElementById(pfx+'-bulk-text').value='';setMode(pfx,'bullet');
+  showToast(`${lines.length} responsibilities imported!`,'success');
+}
+
+// ── FORM DATA ─────────────────────────────────────
+function v(id){return document.getElementById(id).value.trim();}
+
+function getEmpData(){
+  return{
+    EMPLOYEE_NAME:v('e-name'), JOB_TITLE:v('e-title'),
+    EMPLOYEE_RESIDENTIAL_ADDRESS:v('e-address'),
+    EFFECTIVE_DATE:stdDate(v('e-start')), CONTRACT_END_DATE:stdDate(v('e-end')),
+    SALARY:v('e-salary'), bullets:getBullets('e'),
+    _name:`${v('e-name')} — ${v('e-title')} Contract`
+  };
+}
+function validateEmp(d){
+  if(!d.EMPLOYEE_NAME) return 'Please enter the employee name.';
+  if(!d.JOB_TITLE) return 'Please enter the job title.';
+  if(!d.EMPLOYEE_RESIDENTIAL_ADDRESS) return 'Please enter the residential address.';
+  if(!d.EFFECTIVE_DATE) return 'Please select the effective date.';
+  if(!d.CONTRACT_END_DATE) return 'Please select the contract end date.';
+  if(!d.SALARY) return 'Please enter the salary.';
+  if(!d.bullets.length) return 'Please add at least one responsibility.';
+  return null;
+}
+
+function getMsaData(){
+  const s=v('m-start'), e=v('m-end');
+  return{
+    '[Client Company Name]':v('m-name'),
+    '[Client Address]':v('m-address'),
+    '[Effective Date]':ordinalDate(s),
+    '[Expected End Date]':shortOrdinalDate(e),
+    '[Total Validity Date]':calcValidity(s,e),
+    '[working hours]':v('m-hours')+' hours',
+    '[feeamount]':'$'+Number(v('m-fee')).toLocaleString('en-US'),
+    '[Entitled Paid Time Off]':v('m-pto'),
+    _clientDesc:v('m-desc'),
+    _name:`${v('m-name')} — Master Service Agreement`,
+    _start:s, _end:e
+  };
+}
+function validateMsa(d){
+  if(!d['[Client Company Name]']) return 'Please enter the client company name.';
+  if(!d._clientDesc) return 'Please enter the client description.';
+  if(!d['[Client Address]']) return 'Please enter the client address.';
+  if(!d['[Effective Date]']) return 'Please select the effective date.';
+  if(!d['[Expected End Date]']) return 'Please select the expected end date.';
+  if(!d['[Total Validity Date]']) return 'Could not calculate validity — check your dates.';
+  if(!d['[working hours]']||d['[working hours]']===' hours') return 'Please enter the working hours.';
+  if(!v('m-fee')) return 'Please enter the fee amount.';
+  if(!d['[Entitled Paid Time Off]']) return 'Please enter the PTO days.';
+  return null;
+}
+
+// ── SOW DATA ──────────────────────────────────────
+function getSowData() {
+  const dateVal = v('s-effective-date');
+  const clientName = v('s-client-name');
+  const sowNum = v('s-sow-number');
+  return {
+    '[SOW Number]':      sowNum,
+    '[Client name]':     clientName,
+    '[Client Name]':     clientName,
+    '[Effective Date]':  ordinalDate(dateVal),
+    '[Employee Name]':   v('s-employee-name'),
+    '[Employee Role]':   v('s-employee-role'),
+    '[Engagement Type]': v('s-engagement-type'),
+    '[Work Location]':   v('s-work-location'),
+    '[Probation Period]':v('s-probation'),
+    '[Monthly Fee]':     '$'+Number(v('s-monthly-fee')).toLocaleString('en-US'),
+    '[Working hours]':   v('s-working-hours') + ' hours',
+    _name: `${clientName} — SOW ${sowNum}`,
+    _clientName: clientName,
+    _sowNum: sowNum,
+    _date: ordinalDate(dateVal)
+  };
+}
+
+function validateSow(d) {
+  if (!d['[SOW Number]'])      return 'Please enter the SOW number.';
+  if (!d['[Client name]'])     return 'Please enter the client name.';
+  if (!d['[Effective Date]'])  return 'Please select the effective date.';
+  if (!d['[Employee Name]'])   return 'Please enter the employee name.';
+  if (!d['[Employee Role]'])   return 'Please enter the employee role.';
+  if (!d['[Engagement Type]']) return 'Please select the engagement type.';
+  if (!d['[Work Location]'])   return 'Please enter the work location.';
+  if (!d['[Probation Period]'])return 'Please enter the probation period.';
+  if (!v('s-monthly-fee'))    return 'Please enter the monthly fee.';
+  if (!d['[Working hours]'] || d['[Working hours]'] === ' hours') return 'Please enter the working hours.';
+  return null;
+}
+
+function resetForm(contract){
+  // Clean up any draft doc in Drive
+  if (previewDocId[contract] && accessToken) {
+    fetch(`https://www.googleapis.com/drive/v3/files/${previewDocId[contract]}`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` }
+    }).catch(() => {});
+    previewDocId[contract] = null;
+  }
+
+  if(contract==='emp'){
+    ['e-name','e-title','e-address','e-start','e-end','e-salary'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('e-bullet-list').innerHTML='';
+    document.getElementById('e-bulk-text').value='';
+    setMode('e','bullet'); addBullet('e'); updateCount('e');
+  } else if(contract==='msa') {
+    ['m-name','m-desc','m-address','m-start','m-end','m-hours','m-fee','m-pto'].forEach(id=>document.getElementById(id).value='');
+    updateValidity();
+  } else if(contract==='sow') {
+    ['s-sow-number','s-client-name','s-effective-date','s-employee-name','s-employee-role',
+     's-engagement-type','s-work-location','s-probation','s-monthly-fee','s-working-hours']
+      .forEach(id=>document.getElementById(id).value='');
+  }
+}
+
+// ── PREVIEW ───────────────────────────────────────
+let currentData = { emp: null, msa: null, sow: null };
+
+function triggerPreview(contract) {
+  let data, err;
+  if (contract === 'emp')      { data = getEmpData();  err = validateEmp(data); }
+  else if (contract === 'msa') { data = getMsaData();  err = validateMsa(data); }
+  else if (contract === 'sow') { data = getSowData();  err = validateSow(data); }
+  if (err) { showToast(err, 'error'); return; }
+  currentData[contract] = data;
+  requireAuth({ type: 'preview', contract });
+}
+
+async function doPreview(contract) {
+  const data = currentData[contract];
+  showLoading('Preparing preview...');
+  try {
+    // Reuse existing doc if available, otherwise create once
+    const docId = await upsertFilledCopy(data, contract);
+    previewDocId[contract] = docId;
+
+    // Fetch the doc content from Docs API
+    setLoadingText('Fetching document formatting...');
+    const docRes = await fetch(`https://docs.googleapis.com/v1/documents/${docId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if (!docRes.ok) throw new Error('Could not fetch document');
+    const doc = await docRes.json();
+
+    // Render the doc
+    const html = renderGoogleDoc(doc);
+
+    if (contract === 'emp') {
+      document.getElementById('emp-doc-content').innerHTML = html;
+      document.getElementById('emp-prev-name').textContent = data.EMPLOYEE_NAME;
+      document.getElementById('emp-prev-sub').textContent  = `${data.JOB_TITLE} · ${data.EFFECTIVE_DATE} – ${data.CONTRACT_END_DATE}`;
+      document.getElementById('emp-prev-url').textContent  = data._name;
+    } else if (contract === 'msa') {
+      document.getElementById('msa-doc-content').innerHTML = html;
+      document.getElementById('msa-prev-name').textContent = data['[Client Company Name]'];
+      document.getElementById('msa-prev-sub').textContent  = `MSA · ${data['[Effective Date]']} – ${data['[Expected End Date]']}`;
+      document.getElementById('msa-prev-url').textContent  = data._name;
+    } else if (contract === 'sow') {
+      document.getElementById('sow-doc-content').innerHTML = html;
+      document.getElementById('sow-prev-name').textContent = data._clientName;
+      document.getElementById('sow-prev-sub').textContent  = `SOW ${data._sowNum} · ${data._date}`;
+      document.getElementById('sow-prev-url').textContent  = data._name;
+    }
+
+    hideLoading();
+    showScreen(contract + '-preview');
+  } catch(e) {
+    hideLoading();
+    showToast('Error generating preview: ' + (e.message||'Unknown error'), 'error');
+    console.error(e);
+  }
+}
+
+// ── GOOGLE DOCS RENDERER ──────────────────────────
+function renderGoogleDoc(doc) {
+  const body = doc.body;
+  if (!body || !body.content) return '<p>Could not render document.</p>';
+
+  let html = '';
+
+  for (const element of body.content) {
+    if (element.paragraph) {
+      html += renderParagraph(element.paragraph, doc);
+    } else if (element.table) {
+      html += renderTable(element.table, doc);
+    } else if (element.tableOfContents) {
+      // skip TOC
+    }
+  }
+  return html;
+}
+
+function renderParagraph(para, doc) {
+  const style = para.paragraphStyle || {};
+  const namedStyle = style.namedStyleType || 'NORMAL_TEXT';
+  const alignment = style.alignment || 'START';
+
+  let tag = 'p';
+  let cls = 'doc-paragraph';
+
+  if (namedStyle === 'HEADING_1') { tag = 'h1'; cls += ' doc-heading-1'; }
+  else if (namedStyle === 'HEADING_2') { tag = 'h2'; cls += ' doc-heading-2'; }
+  else if (namedStyle === 'HEADING_3') { tag = 'h3'; cls += ' doc-heading-3'; }
+
+  if (alignment === 'CENTER') cls += ' doc-align-center';
+  else if (alignment === 'END') cls += ' doc-align-right';
+  else if (alignment === 'JUSTIFIED') cls += ' doc-align-justified';
+
+  // Check if list item
+  const bullet = para.bullet;
+  let indent = '';
+  if (bullet) {
+    const nestLevel = bullet.nestingLevel || 0;
+    const paddingLeft = 18 + nestLevel * 18;
+    indent = ` style="padding-left:${paddingLeft}pt;"`;
+  }
+
+  // Spacing
+  const spaceAfter = style.spaceAfter?.magnitude || 0;
+  if (spaceAfter > 0) cls += ' spacing-after';
+
+  // Render runs
+  let inner = '';
+  if (para.elements) {
+    for (const el of para.elements) {
+      if (el.textRun) inner += renderTextRun(el.textRun);
+      else if (el.inlineObjectElement) {
+        // skip inline objects for now
+      }
+    }
+  }
+
+  // Empty paragraph = line break
+  if (!inner.trim()) return `<div class="doc-paragraph">&nbsp;</div>`;
+
+  if (bullet) {
+    return `<div class="doc-paragraph${cls.includes('spacing-after')?' spacing-after':''}" style="padding-left:${18+(bullet.nestingLevel||0)*18}pt;">• ${inner}</div>`;
+  }
+
+  return `<${tag} class="${cls}"${indent}>${inner}</${tag}>`;
+}
+
+function renderTextRun(run) {
+  if (!run.content || run.content === '\n') return '';
+  const ts = run.textStyle || {};
+  let text = run.content.replace(/\n$/, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  if (!text) return '';
+
+  let open = '', close = '';
+
+  // Font size
+  const fs = ts.fontSize?.magnitude;
+  const styles = [];
+  if (fs) styles.push(`font-size:${fs}pt`);
+
+  // Color
+  if (ts.foregroundColor?.color?.rgbColor) {
+    const c = ts.foregroundColor.color.rgbColor;
+    const r = Math.round((c.red||0)*255), g = Math.round((c.green||0)*255), b = Math.round((c.blue||0)*255);
+    styles.push(`color:rgb(${r},${g},${b})`);
+  }
+
+  // Font family
+  if (ts.weightedFontFamily?.fontFamily) {
+    styles.push(`font-family:${ts.weightedFontFamily.fontFamily}`);
+  }
+
+  const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
+
+  let tag = 'span';
+  let cls = '';
+  if (ts.bold && ts.italic) cls = 'doc-run-bold doc-run-italic';
+  else if (ts.bold) cls = 'doc-run-bold';
+  else if (ts.italic) cls = 'doc-run-italic';
+  if (ts.underline) cls += ' doc-run-underline';
+
+  if (!cls && !styleAttr) return text;
+  return `<span class="${cls.trim()}"${styleAttr}>${text}</span>`;
+}
+
+function renderTable(table, doc) {
+  if (!table.tableRows) return '';
+  let html = '<table class="doc-table">';
+  for (const row of table.tableRows) {
+    html += '<tr>';
+    for (const cell of (row.tableCells||[])) {
+      let cellHtml = '';
+      for (const el of (cell.content||[])) {
+        if (el.paragraph) cellHtml += renderParagraph(el.paragraph, doc);
+      }
+      const colSpan = cell.tableCellStyle?.columnSpan > 1 ? ` colspan="${cell.tableCellStyle.columnSpan}"` : '';
+      html += `<td${colSpan}>${cellHtml}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+  return html;
+}
+
+// ── OPEN IN DOCS ──────────────────────────────────
+async function doOpenDocs(contract) {
+  // Always reuse the preview doc — it's already filled and up to date
+  const docId = previewDocId[contract];
+  if (docId) {
+    window.open(`https://docs.google.com/document/d/${docId}/edit`, '_blank');
+    return;
+  }
+  showLoading('Creating Google Doc...');
+  try {
+    const id = await upsertFilledCopy(currentData[contract], contract);
+    previewDocId[contract] = id;
+    hideLoading();
+    window.open(`https://docs.google.com/document/d/${id}/edit`, '_blank');
+  } catch(e) {
+    hideLoading();
+    showToast('Error: ' + (e.message||'Could not create document.'), 'error');
+  }
+}
+
+// ── DOWNLOAD PDF ──────────────────────────────────
+async function doDownloadPDF(contract) {
+  showLoading('Exporting PDF...');
+  try {
+    // Always reuse or upsert — never create duplicates
+    let docId = previewDocId[contract];
+    if (!docId) {
+      setLoadingText('Preparing contract...');
+      docId = await upsertFilledCopy(currentData[contract], contract);
+      previewDocId[contract] = docId;
+    }
+
+    setLoadingText('Downloading PDF...');
+    const pdfRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${docId}/export?mimeType=application/pdf`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    if (!pdfRes.ok) throw new Error(`Export failed: ${pdfRes.status}`);
+    const blob = await pdfRes.blob();
+
+    const name = currentData[contract]._name;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name + '.pdf';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+
+    hideLoading();
+    showToast('PDF downloaded!', 'success');
+  } catch(e) {
+    hideLoading();
+    showToast('Error: ' + (e.message||'Could not export PDF.'), 'error');
+    console.error(e);
+  }
+}
+
+// ── UPSERT FILLED COPY ───────────────────────────
+// Creates the doc once per session per contract type.
+// On subsequent previews, deletes and recreates from template
+// so formatting is always pristine — only ONE doc ever exists per contract.
+async function upsertFilledCopy(data, contract) {
+  const existingId = previewDocId[contract];
+
+  // If a doc already exists for this contract, delete it first
+  if (existingId) {
+    try {
+      await fetch(`https://www.googleapis.com/drive/v3/files/${existingId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+    } catch(e) {
+      // Ignore deletion errors — doc may already be gone
+      console.warn('Could not delete old draft:', e);
+    }
+    previewDocId[contract] = null;
+  }
+
+  // Always create fresh from template — this ensures formatting is pristine
+  const templateId = contract === 'emp' ? EMP_TEMPLATE_ID
+    : contract === 'msa' ? MSA_TEMPLATE_ID
+    : SOW_TEMPLATE_ID;
+
+  const docName = data._name + ' (Draft)';
+
+  const copyRes = await gDrive('POST',
+    `https://www.googleapis.com/drive/v3/files/${templateId}/copy`,
+    { name: docName }
+  );
+  const newId = copyRes.id;
+
+  // Build replacement map
+  let replacements;
+  if (contract === 'emp') {
+    const bulletText = data.bullets.map(b => `• ${b}`).join('\n');
+    replacements = {
+      '{EMPLOYEE_NAME}':                data.EMPLOYEE_NAME,
+      '{JOB_TITLE}':                    data.JOB_TITLE,
+      '{EFFECTIVE_DATE}':               data.EFFECTIVE_DATE,
+      '{CONTRACT_END_DATE}':            data.CONTRACT_END_DATE,
+      '{EMPLOYEE_RESIDENTIAL_ADDRESS}': data.EMPLOYEE_RESIDENTIAL_ADDRESS,
+      '{SALARY}':                       data.SALARY,
+      '{ROLES_AND_RESPONSIBILITIES}':   `Roles and Responsibilities\n${bulletText}`,
+    };
+  } else if (contract === 'msa') {
+    replacements = { ...data };
+    delete replacements._clientDesc; delete replacements._name;
+    delete replacements._start; delete replacements._end;
+  } else if (contract === 'sow') {
+    replacements = { ...data };
+    delete replacements._name; delete replacements._clientName;
+    delete replacements._sowNum; delete replacements._date;
+  }
+
+  const requests = Object.entries(replacements).map(([find, replace]) => ({
+    replaceAllText: { containsText: { text: find, matchCase: true }, replaceText: String(replace) }
+  }));
+
+  await gDocs('POST', `https://docs.googleapis.com/v1/documents/${newId}:batchUpdate`, { requests });
+  return newId;
+}
+
+// ── API HELPERS ───────────────────────────────────
+async function gDrive(method, url, body) {
+  const res = await fetch(url, {
+    method,
+    headers: { Authorization: `Bearer ${accessToken}`, ...(body?{'Content-Type':'application/json'}:{}) },
+    ...(body?{body:JSON.stringify(body)}:{})
+  });
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message||res.statusText); }
+  return res.json();
+}
+async function gDocs(method, url, body) {
+  const res = await fetch(url, {
+    method,
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message||res.statusText); }
+  return res.json();
+}
+
+// ── UTILS ─────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escAttr(s){return String(s).replace(/"/g,'&quot;');}
+function showLoading(msg){setLoadingText(msg);document.getElementById('loading-overlay').classList.add('show');}
+function setLoadingText(msg){document.getElementById('loading-text').textContent=msg;}
+function hideLoading(){document.getElementById('loading-overlay').classList.remove('show');}
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`show ${type}`;
+  clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),5000);
+}
+
+window.onload=()=>{ addBullet('e'); updateCount('e'); };
+</script>
+</body>
+</html>

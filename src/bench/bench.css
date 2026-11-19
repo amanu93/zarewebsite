@@ -1,0 +1,193 @@
+/* ============================================================================
+   ZARE BENCH — the staff portal at /portal
+   Loaded only by src/app/(bench)/portal/layout.tsx, so none of this reaches
+   the marketing site. Everything is scoped under [data-bench], the wrapper
+   that layout renders, and every keyframe is prefixed bench-, so nothing can
+   collide with the site's own classes.
+
+   Colour tokens live in globals.css (@theme, "ZARE BENCH" block), because
+   Tailwind builds utilities from that one theme.
+   ============================================================================ */
+
+[data-bench] {
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Re-declared here, not inherited. globals.css defines these at :root as
+     var(--font-sora) and so on, but the font files' own variables only exist
+     on this wrapper (fontVariables from @/styles/fonts, the site's one type
+     system), so at :root they resolve to
+     nothing and every child inherits the empty value. Declaring them on the
+     same element as the font variables is what makes font-mono and the
+     display face work. */
+  --font-display: var(--font-sora), system-ui, sans-serif;
+  --font-body: var(--font-manrope), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Consolas, monospace;
+
+  min-height: 100vh;
+  background: var(--color-bench-ground);
+  color: var(--color-bench-ink);
+  font-family: var(--font-body);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The page behind the portal, so overscroll and short pages stay ink rather
+   than flashing the site's white body. */
+html:has([data-bench]) body {
+  background-color: var(--color-bench-ground);
+}
+
+/* Page titles take the site's display face. */
+[data-bench] :where(h1, h2) {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Numbers as instrumentation: fixed-width digits so counters do not jitter. */
+[data-bench] .tabular {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+[data-bench] ::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+[data-bench] *:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbars that belong to a dark instrument panel. */
+[data-bench] * {
+  scrollbar-color: var(--color-bench-line-bright) transparent;
+  scrollbar-width: thin;
+}
+
+/* ---------------------------------------------------------------- motion -- */
+
+/* A row leaving the call queue: it has to read as "done", not as
+   "disappeared". Kept short so it never delays the next interaction. */
+@keyframes bench-queue-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+[data-bench] .queue-row-out {
+  animation: bench-queue-out 320ms var(--ease-out-soft) forwards;
+  pointer-events: none;
+}
+
+@keyframes bench-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+[data-bench] .fade-up {
+  animation: bench-fade-up 320ms var(--ease-out-soft) both;
+}
+
+/* Phone account sheet. */
+@keyframes bench-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes bench-sheet-backdrop {
+  from {
+    opacity: 0;
+  }
+}
+
+[data-bench] .sheet-up {
+  animation: bench-sheet-up 260ms var(--ease-out-soft) both;
+}
+
+[data-bench] .sheet-backdrop {
+  animation: bench-sheet-backdrop 200ms ease-out both;
+}
+
+/* The health rings draw themselves once on load. Ambient, not attention
+   seeking: a scoreboard you glance at, not a notification. */
+@keyframes bench-ring-draw {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+}
+
+[data-bench] .ring-draw {
+  animation: bench-ring-draw 900ms var(--ease-out-soft) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-bench] :is(.queue-row-out, .fade-up, .ring-draw, .sheet-up, .sheet-backdrop) {
+    animation: none;
+  }
+  [data-bench] .queue-row-out {
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------- sign in -- */
+
+/* The site's dark stage (.sc-stage): ink, a teal glow and a depth-blue glow,
+   and a 44px grid masked to fade at the edges. Static here: a sign-in form
+   is somewhere to concentrate, not to watch. */
+[data-bench] .brand-stage {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(1100px 650px at 80% -10%, color-mix(in srgb, var(--color-accent) 20%, transparent), transparent 60%),
+    radial-gradient(900px 600px at 0% 110%, color-mix(in srgb, var(--color-accent-depth) 14%, transparent), transparent 60%),
+    var(--color-bench-ground);
+}
+
+[data-bench] .brand-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-accent) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 7%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(900px 620px at 50% 40%, #000 15%, transparent 75%);
+  mask-image: radial-gradient(900px 620px at 50% 40%, #000 15%, transparent 75%);
+}
+
+/* The site's label style: mono, uppercase, wide tracking. */
+[data-bench] .brand-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.26em;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* A bulk action bar or notice sits at the bottom of the candidates page; the
+   call toast moves up above it rather than covering it. */
+[data-bench]:has([data-bench-bar]) [data-bench-toast] {
+  bottom: calc(9.5rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 768px) {
+  [data-bench]:has([data-bench-bar]) [data-bench-toast] {
+    bottom: 5.5rem;
+  }
+}
