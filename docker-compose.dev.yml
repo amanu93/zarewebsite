@@ -1,0 +1,12 @@
+services:
+   zare-landing-fe:
+    environment:
+      NEXT_PUBLIC_API_URL: "https://landing.zareinnovations.com"
+      NEXT_PUBLIC_RESEND_API_KEY: "dfgdfgdgf"
+      image: zare-landing:latest  
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+       - '3556:3000'
+    restart: always

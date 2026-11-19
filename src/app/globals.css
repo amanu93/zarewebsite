@@ -1,0 +1,1081 @@
+/* Layer order, declared once and up front so it does not depend on which file
+   happens to be imported first:
+
+     theme, base   Tailwind's variables and preflight
+     mantine       Mantine, loaded ONLY by (marketing) and admin via
+                   src/styles/mantine.css
+     (unlayered)   Tailwind utilities, which beat every layer above
+
+   Mantine's stylesheets used to be imported here, which meant the root layout
+   pulled the admin panel's CSS onto every page including the rebuilt site. */
+@layer theme, base, mantine;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+
+/* v4 resolves `dark:` against prefers-color-scheme by default. There is no
+   dark theme here, so keep it bound to a class that is never applied. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --breakpoint-xl2: 1920px;
+
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(0 0% 3.9%);
+  --color-border: hsl(0 0% 89.8%);
+
+  /* Raw brand values. Retained because live marketing code references them.
+     New code uses the semantic tokens below, never these. */
+  --color-ink: #020f18;
+  --color-navy: #0a293b;
+  --color-deep: #051c2b;
+  --color-mist: #f0f1f2;
+  --color-teal: #40c1c7;
+  --color-teal-bright: #10cfd1;
+
+  --animate-infinite-scroll: infinite-scroll 25s linear infinite;
+
+  @keyframes infinite-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  /* ==================================================================
+     ZARE DESIGN SYSTEM — M1
+     Semantic tokens. Components consume ONLY these, never a raw hex and
+     never Tailwind's default palette (no teal-600, no gray-400).
+     ================================================================== */
+
+  /* --- surfaces -------------------------------------------------- */
+  --color-surface-ink: #020f18;
+  --color-surface-deep: #051c2b;
+  --color-surface-navy: #0a293b;
+  --color-surface-paper: #ffffff;
+  --color-surface-mist: #f0f1f2;
+
+  /* --- text ------------------------------------------------------ */
+  /* on dark surfaces */
+  --color-on-dark: rgba(226, 240, 244, 0.82);
+  --color-on-dark-muted: rgba(207, 238, 240, 0.6);
+  --color-on-dark-strong: #ffffff;
+  /* on light surfaces */
+  --color-on-light: rgba(10, 41, 59, 0.82);
+  --color-on-light-muted: rgba(10, 41, 59, 0.64);
+  --color-on-light-strong: #0a293b;
+
+  /* --- accent ----------------------------------------------------
+     accent        interactive affordance, rules, focus rings
+     accent-bright eyebrows and data emphasis on DARK only
+     accent-ink    the ONLY teal permitted as text on light surfaces.
+                   Measured: #40c1c7 on white is 2.17:1 (fails). This is
+                   5.56:1 on paper and 4.92:1 on mist, so it clears AA on
+                   both light grounds, not just white.                  */
+  --color-accent: #40c1c7;
+  --color-accent-bright: #10cfd1;
+  --color-accent-ink: #1a737a;
+  --color-accent-contrast: #03141d;
+
+  /* --- rules and hairlines --------------------------------------- */
+  --color-rule-dark: rgba(64, 193, 199, 0.22);
+  --color-rule-light: rgba(10, 41, 59, 0.14);
+  /* From the Company Profile 2026 design language (docs/zare-company-profile,
+     V4 deck). Neutral is for content that is not brand-owned — logo tiles,
+     portfolio cards — so the teal hairline keeps meaning. Strong marks the
+     ONE highlighted element per view; see .surface-highlight. */
+  --color-rule-neutral: rgba(255, 255, 255, 0.09);
+  --color-rule-strong: rgba(64, 193, 199, 0.42);
+
+  /* Depth partner from the profile decks. Lives ONLY inside gradients and
+     glows — never as flat text or a border. The moment it appears as a flat
+     colour the site has two brands. */
+  --color-accent-depth: #4facfe;
+
+  /* --- type families --------------------------------------------- */
+  --font-display: var(--font-sora), system-ui, sans-serif;
+  --font-body: var(--font-manrope), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Consolas, monospace;
+
+  /* --- type scale ------------------------------------------------- */
+  --text-display-1: clamp(38px, 5.6vw, 76px);
+  --text-display-1--line-height: 1.06;
+  --text-display-1--letter-spacing: -0.02em;
+  --text-display-1--font-weight: 600;
+
+  --text-display-2: clamp(30px, 4.2vw, 54px);
+  --text-display-2--line-height: 1.1;
+  --text-display-2--letter-spacing: -0.02em;
+  --text-display-2--font-weight: 600;
+
+  --text-display-3: clamp(24px, 3.2vw, 40px);
+  --text-display-3--line-height: 1.14;
+  --text-display-3--letter-spacing: -0.02em;
+  --text-display-3--font-weight: 600;
+
+  --text-heading: 20px;
+  --text-heading--line-height: 1.3;
+  --text-heading--font-weight: 600;
+
+  --text-body: 16.5px;
+  --text-body--line-height: 1.65;
+
+  --text-body-sm: 15px;
+  --text-body-sm--line-height: 1.6;
+
+  --text-caption: 13px;
+  --text-caption--line-height: 1.5;
+
+  --text-label: 12px;
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: 0.26em;
+  --text-label--font-weight: 500;
+
+  --text-metric: clamp(44px, 6vw, 80px);
+  --text-metric--line-height: 0.95;
+  --text-metric--letter-spacing: -0.03em;
+  --text-metric--font-weight: 500;
+
+  /* --- spacing ---------------------------------------------------- */
+  --spacing-section: 104px;
+  --spacing-section-compact: 88px;
+  /* 80, not 60: at 60 the phone page read as one continuous column with
+     nothing marking where a section ended. Premium mobile marketing sites
+     run 80-96 between bands; 80 keeps the desktop ratio honest. */
+  --spacing-section-mobile: 80px;
+  --spacing-gutter: 56px;
+  /* 24 on phones (was 20). The extra 4px each side is the cheapest
+     negative space on the page — every band, rule and card edge gains it. */
+  --spacing-gutter-mobile: 24px;
+  /* The header's one pair of dimensions. Consumed by the bar itself, every
+     page's top offset, the mobile menu, and scroll-padding — change here,
+     change everywhere. 64/72 sits in the premium-standard band (Linear,
+     Stripe, Vercel all run 56-72px). */
+  --spacing-header-h: 64px;
+  --spacing-header-h-md: 72px;
+
+  --container-site: 1400px;
+
+  /* --- motion ----------------------------------------------------- */
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  /* Slow in, slow out, with a long flat middle. Used only where something
+     RESOLVES rather than arrives: text coming out of blur, the canvas
+     dissolving up. An ease-out would land it too eagerly. */
+  --ease-resolve: cubic-bezier(0.7, 0, 0.2, 1);
+
+  /* ==================================================================
+     ZARE BENCH — the staff portal at /portal
+     Its own namespace so it can never collide with the site's tokens
+     ("ink" here is a TEXT colour; the site's --color-ink is a surface).
+     Ink, deep and navy come from the site's surfaces, with the two steps
+     between them interpolated; teal, depth blue and text-on-teal reuse
+     the site's accent tokens directly. Every text colour clears WCAG AA
+     on every bench surface (faint on surface-3 is the tightest: 4.67:1).
+     Styles and motion for these screens: src/bench/bench.css.
+     ================================================================== */
+  --color-bench-ground: #020f18;
+  --color-bench-surface: #061a27;
+  --color-bench-surface-2: #0a2333;
+  --color-bench-surface-3: #0f2d40;
+  --color-bench-line: #12303f;
+  --color-bench-line-bright: #1d4556;
+  --color-bench-ink: #e8f2f5;
+  --color-bench-ink-dim: #a9bec7;
+  --color-bench-ink-faint: #7f97a3;
+  /* Health: meaning, not decoration. Green covered, amber short, red critical. */
+  --color-bench-healthy: #34d399;
+  --color-bench-warning: #fbbf24;
+  --color-bench-critical: #f87171;
+
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+/* Durations are plain properties rather than @theme entries: they are read by
+   the reveal CSS below, not turned into utilities. */
+:root {
+  --duration-feedback: 120ms;
+  --duration-reveal: 400ms;
+  --duration-section: 700ms;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Anchor targets land below the fixed header (the header's own
+     /#tech-ai and /#embedded links depend on this). */
+  scroll-padding-top: calc(var(--spacing-header-h) + 24px);
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: calc(var(--spacing-header-h-md) + 24px);
+  }
+}
+
+/* The mobile menu's entrance. Conditional render means no exit machinery;
+   reduced motion renders it in place. */
+@keyframes menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-enter {
+  animation: menu-enter 180ms var(--ease-enter);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-enter {
+    animation: none;
+  }
+}
+
+@property --num {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
+.count-up {
+  counter-reset: num var(--num);
+  animation: count-up 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  font-variant-numeric: tabular-nums;
+}
+
+.count-up::after {
+  content: counter(num) attr(data-suffix);
+}
+
+@keyframes count-up {
+  from {
+    --num: 1;
+  }
+}
+
+/* ====================================================================
+   THE SCALE CHALLENGE — v3 mockup
+   Motion and surfaces taken from docs/scale-challenge-ui-mockups/
+   "Scale Challenge v3.dc.html": every keyframe below is its timing and
+   its transform, unchanged. Only the COLOURS are re-pointed at the Zare
+   palette — the mockup's violet #a78bfa / blue #3882f6 become the brand
+   teal and its depth blue, because the page has to belong to the site.
+   Structure, distances, durations and easings are the mockup's.
+   Every animation is gated on motion-safe at the call site, and the
+   ambient loops are switched off wholesale at the foot of this block.
+   ==================================================================== */
+
+/* The stage: base ink, two drifting glows, and a 44px grid that pans
+   diagonally and is masked to fade at the edges. */
+.sc-stage {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      1200px 700px at 75% -10%,
+      color-mix(in srgb, var(--color-accent) 22%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 600px at 10% 110%,
+      color-mix(in srgb, var(--color-accent-depth) 18%, transparent),
+      transparent 60%
+    ),
+    var(--color-surface-ink);
+}
+
+.sc-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--color-accent) 7%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-accent) 7%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 44px 44px;
+  animation: gridPan 7s linear infinite;
+  -webkit-mask-image: radial-gradient(
+    900px 620px at 50% 40%,
+    #000 20%,
+    transparent 75%
+  );
+  mask-image: radial-gradient(
+    900px 620px at 50% 40%,
+    #000 20%,
+    transparent 75%
+  );
+}
+
+@keyframes gridPan {
+  to {
+    background-position:
+      0 44px,
+      44px 0;
+  }
+}
+
+@keyframes orbA {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(60px, -40px) scale(1.15);
+  }
+}
+
+@keyframes orbB {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-50px, 50px) scale(0.9);
+  }
+}
+
+/* Mockup pulses a violet shadow; brand teal here, same 24→44px and 2.6s. */
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 24px color-mix(in srgb, var(--color-accent) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 44px color-mix(in srgb, var(--color-accent) 65%, transparent);
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-72vh);
+    opacity: 0;
+  }
+}
+
+@keyframes tickerPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes sheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+@keyframes badgeSpin {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes starPop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* The sheen that sweeps the Embedded card. The element clips; the ::after
+   is the light. Brand teal rather than the mockup's white-violet. */
+.sc-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.sc-sheen::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent) 16%, transparent),
+    transparent
+  );
+  animation: sheen 3.4s ease-in-out infinite;
+}
+
+/* The two drifting orbs the mockup floats over the stage. They sit inside
+   .sc-stage, behind everything, and carry the brand hues. */
+.sc-orb {
+  position: absolute;
+  /* Behind the screens. .sc-stage isolates, so -1 cannot escape it — the
+     same trick the grid overlay uses. Without this the orbs would paint
+     over the content, since absolute beats static in the same context. */
+  z-index: -1;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(8px);
+}
+
+.sc-orb-a {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: -80px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-accent) 26%, transparent),
+    transparent 70%
+  );
+  animation: orbA 9s ease-in-out infinite;
+}
+
+.sc-orb-b {
+  width: 360px;
+  height: 360px;
+  bottom: -120px;
+  left: -60px;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-accent-depth) 20%, transparent),
+    transparent 70%
+  );
+  animation: orbB 11s ease-in-out infinite;
+}
+
+/* The mockup's two surface recipes. It draws them in a cool lavender
+   (rgba(148,163,255,…)); the alphas are its, the hue is the brand's. */
+.sc-panel {
+  border: 1px solid color-mix(in srgb, var(--color-accent) 14%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 4%, transparent);
+}
+
+.sc-pill {
+  border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+
+/* The start screen's option cards run TWO of the mockup's animations at
+   once — popIn on arrival, then floatY forever. Two `animate-*` utilities
+   would overwrite each other, so they are declared together here and the
+   per-card stagger comes in on --sc-delay. */
+.sc-optioncard {
+  animation:
+    popIn 0.5s ease both var(--sc-delay, 0s),
+    floatY 6s ease-in-out infinite var(--sc-delay, 0s);
+}
+
+/* The ambient loops are decoration. Anything that repeats forever stops
+   under reduced motion; the one-shot pop/star reveals are given their
+   finished state rather than being skipped, so nothing arrives invisible. */
+@media (prefers-reduced-motion: reduce) {
+  .sc-stage::before,
+  .sc-sheen::after,
+  .sc-optioncard,
+  .sc-orb {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .count-up {
+    animation: none;
+  }
+}
+
+.clip-path {
+  background: transparent;
+  clip-path: url(#curveClip);
+}
+
+.logo-filter {
+  filter: invert(10%) sepia(39%) saturate(2691%) hue-rotate(177deg) brightness(92%) contrast(92%);
+}
+
+/* ====================================================================
+   ZARE SITE SCOPE — M1
+   Everything below applies only inside [data-zare-site], the wrapper
+   rendered by app/(site)/layout.tsx. The live marketing and admin routes
+   are deliberately unaffected.
+   ==================================================================== */
+
+[data-zare-site] {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.65;
+  color: var(--color-on-light);
+  background-color: var(--color-surface-paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+[data-zare-site] :focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Tone contract.
+   <Section tone> emits data-tone. Descendants read these variables rather than
+   testing which surface they happen to sit on, so a heading or a rule is
+   correct wherever it is nested. */
+[data-tone='ink'],
+[data-tone='deep'],
+[data-tone='navy'] {
+  --heading-color: var(--color-on-dark-strong);
+  --rule-color: var(--color-rule-dark);
+  --eyebrow-color: var(--color-accent-bright);
+  --muted-color: var(--color-on-dark-muted);
+  /* Teal that is safe as text on THIS ground. */
+  --accent-text: var(--color-accent);
+}
+
+[data-tone='paper'],
+[data-tone='mist'] {
+  --heading-color: var(--color-on-light-strong);
+  --rule-color: var(--color-rule-light);
+  --eyebrow-color: var(--color-on-light-muted);
+  --muted-color: var(--color-on-light-muted);
+  /* #40c1c7 fails WCAG AA on white. accent-ink passes. */
+  --accent-text: var(--color-accent-ink);
+}
+
+/* ====================================================================
+   PROFILE DESIGN LANGUAGE — M2
+   Recipes lifted from the Company Profile 2026 (docs/zare-company-profile,
+   V4 "Futuristic" deck — see docs/profile-integration-plan.md). Three
+   devices, and the deck's discipline comes with them:
+
+     surface-highlight  the ONE featured treatment. Exactly one per view —
+                        the payoff cell, the live stat, the CTA. Two of
+                        these on screen and neither is the punchline.
+     logo-plate         client logos always sit on a white plate; never
+                        knock a client's mark out to teal or white.
+     data-atmosphere    the deck's layered ground: sonar ring pairs, a
+                        68px graph grid at 3%, and off-canvas corner
+                        glows. Dark tones only. Vary the ring anchor per
+                        section (--atmo-ring-a/-b) or use the "quiet"
+                        variant on dense sections — the same backdrop on
+                        every section reads as wallpaper.
+   ==================================================================== */
+
+.surface-highlight {
+  background-image: linear-gradient(
+    135deg,
+    rgba(64, 193, 199, 0.18),
+    rgba(79, 172, 254, 0.06)
+  );
+  border: 1px solid var(--color-rule-strong);
+  /* The system's only shadow, and it points inward. */
+  box-shadow: 0 0 60px rgba(64, 193, 199, 0.1) inset;
+}
+
+.logo-plate {
+  background-color: #ffffff;
+  /* Tone-aware: the neutral white hairline vanishes on light grounds, so
+     inherit the enclosing tone's rule colour where one is set. */
+  border: 1px solid var(--rule-color, var(--color-rule-neutral));
+  /* The only radius in the profile language lives on logo plates. */
+  border-radius: 6px;
+}
+
+[data-atmosphere] {
+  background-image:
+    /* stroked ring pairs — a 2px circle drawn with hard radial stops */
+    radial-gradient(
+      circle at var(--atmo-ring-a, 74% 82%),
+      transparent 0 236px,
+      rgba(64, 193, 199, 0.11) 237px 239px,
+      transparent 240px
+    ),
+    radial-gradient(
+      circle at var(--atmo-ring-b, 90% 82%),
+      transparent 0 236px,
+      rgba(79, 172, 254, 0.09) 237px 239px,
+      transparent 240px
+    ),
+    radial-gradient(
+      circle at var(--atmo-ring-a, 74% 82%),
+      transparent 0 168px,
+      rgba(64, 193, 199, 0.07) 169px 170px,
+      transparent 171px
+    ),
+    radial-gradient(
+      circle at var(--atmo-ring-b, 90% 82%),
+      transparent 0 168px,
+      rgba(79, 172, 254, 0.06) 169px 170px,
+      transparent 171px
+    ),
+    /* graph grid, barely-there */
+    linear-gradient(rgba(64, 193, 199, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64, 193, 199, 0.03) 1px, transparent 1px),
+    /* corner glows anchored outside the frame so only the falloff shows */
+    radial-gradient(
+      ellipse 1100px 700px at 85% -10%,
+      rgba(64, 193, 199, 0.1),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 900px 620px at -10% 110%,
+      rgba(79, 172, 254, 0.09),
+      transparent 65%
+    );
+  background-size:
+    auto, auto, auto, auto, 68px 68px, 68px 68px, auto, auto;
+  background-repeat:
+    no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, no-repeat,
+    no-repeat;
+}
+
+/* Dense or tabular sections: texture and depth without the rings. */
+[data-atmosphere='quiet'] {
+  background-image:
+    linear-gradient(rgba(64, 193, 199, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(64, 193, 199, 0.03) 1px, transparent 1px),
+    radial-gradient(
+      ellipse 1100px 700px at 85% -10%,
+      rgba(64, 193, 199, 0.1),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 900px 620px at -10% 110%,
+      rgba(79, 172, 254, 0.09),
+      transparent 65%
+    );
+  background-size: 68px 68px, 68px 68px, auto, auto;
+  background-repeat: repeat, repeat, no-repeat, no-repeat;
+}
+
+/* ====================================================================
+   HERO SCROLL SEQUENCE
+   States driven entirely by scroll position. The boundaries live in each
+   variant's canvas driver (mark-canvas / mobius-hero-canvas /
+   globe-hero-canvas); this block owns only what each state looks like.
+
+   EVERY rule here is gated on [data-scroll-ready], which a driver sets
+   only after Three has actually booted AND (for the Möbius variant) the
+   engine has a live renderer on a fine pointer without reduced motion.
+   Without the attribute the hero is one viewport of state 0 and nothing
+   below moves — the no-JS, no-WebGL, reduced-motion and (on the Möbius
+   variant) coarse-pointer experience. A hero with multiple viewports of
+   scroll range but no animation would be screens of empty space, so the
+   height and the choreography are switched on by the same flag.
+   ==================================================================== */
+
+/* Pinned scroll length for the LEGACY variants (mark, globe). The Möbius
+   variant owns its height inline from the single HERO_SVH constant in
+   mobius-hero-canvas.tsx (inline style wins over this rule), so tuning
+   the production hero never touches this file. */
+[data-hero-scroll][data-scroll-ready='true'] {
+  height: 380svh;
+}
+
+/* The canvas dissolves up rather than switching on.
+   Three.js finishes loading at an arbitrary moment after first paint, and
+   without this the formation appears in a single frame — which reads as a
+   late-loading asset, not as an intention. 2.5s is long enough that nobody
+   catches the boundary.
+
+   The attribute is set one frame after the element mounts, so the transition
+   has a resolved starting style to animate from. */
+[data-hero-scroll] zare-mark,
+[data-hero-scroll] zare-mobius,
+[data-hero-scroll] zare-mobius-write,
+[data-hero-scroll] zare-globe-write {
+  opacity: 0;
+  transition: opacity 2500ms var(--ease-resolve);
+}
+
+[data-hero-scroll] zare-mark[data-lit='true'],
+[data-hero-scroll] zare-mobius[data-lit='true'],
+[data-hero-scroll] zare-mobius-write[data-lit='true'],
+[data-hero-scroll] zare-globe-write[data-lit='true'] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-hero-scroll] zare-mark,
+  [data-hero-scroll] zare-mobius,
+  [data-hero-scroll] zare-mobius-write,
+  [data-hero-scroll] zare-globe-write {
+    transition: none;
+  }
+}
+
+/* State 1 — the copy layer leaves.
+   --hero-cards and --hero-head are written on this element by MarkCanvas,
+   once per frame, and inherit down. Two clocks rather than one because the
+   cards have to be clear of the frame before the headline starts to go. */
+[data-hero-scroll][data-scroll-ready='true'] [data-hero-cards] {
+  opacity: calc(1 - var(--hero-cards, 0));
+}
+
+[data-hero-scroll][data-scroll-ready='true'] [data-hero-card] {
+  translate: calc(var(--hero-cards, 0) * var(--dir, 1) * 62vw) 0;
+}
+
+[data-hero-scroll][data-scroll-ready='true'] [data-hero-head] {
+  opacity: calc(1 - var(--hero-head, 0));
+  translate: 0 calc(var(--hero-head, 0) * -48px);
+}
+
+/* Phones — the resting copy stack is taller than one small viewport, so
+   it cannot part sideways out of a clipped rest state. The globe driver
+   holds --hero-cards at 0 there (the sideways rules above go inert),
+   measures the stack's overhang into --hero-overflow, and drives two
+   moves instead: the whole copy slides UP by that overhang across
+   --hero-slide, so the cards are read in full, and then the whole copy
+   lifts and fades on --hero-head — the same property the headline
+   already exits on, so the head and the cards leave together.
+
+   `translate` only, never `transform`, on these elements — see the
+   Lightning CSS note on [data-hero-msg]. */
+@media (max-width: 767px) {
+  [data-hero-scroll][data-scroll-ready='true'] [data-hero-copy] {
+    translate: 0 calc(var(--hero-slide, 0) * -1 * var(--hero-overflow, 0px));
+  }
+
+  [data-hero-scroll][data-scroll-ready='true'] [data-hero-cards] {
+    opacity: calc(1 - var(--hero-head, 0));
+    translate: 0 calc(var(--hero-head, 0) * -48px);
+  }
+}
+
+/* Once the cards are off screen they must stop being focusable, not merely
+   become invisible. visibility also removes them from the accessibility
+   tree, and it reverses cleanly when the visitor scrolls back up. */
+[data-hero-scroll][data-hero-state='2'] [data-hero-cards],
+[data-hero-scroll][data-hero-state='3'] [data-hero-cards],
+[data-hero-scroll][data-hero-state='4'] [data-hero-cards],
+[data-hero-scroll][data-hero-state='5'] [data-hero-cards] {
+  visibility: hidden;
+}
+
+/* The Möbius driver additionally stamps this the instant the card exit
+   completes (p ≥ 0.22), closing the window where a fully-translated card
+   was still keyboard-reachable while its state had not yet advanced. */
+[data-hero-scroll][data-cards-gone] [data-hero-cards] {
+  visibility: hidden;
+}
+
+/* Same contract for the headline block: once its exit completes the copy
+   must leave the accessibility tree too — screen readers must not keep
+   reading a headline that is visually absent for the rest of the pin.
+   Reverses on scroll-up with the state. */
+[data-hero-scroll][data-hero-state='2'] [data-hero-head],
+[data-hero-scroll][data-hero-state='3'] [data-hero-head],
+[data-hero-scroll][data-hero-state='4'] [data-hero-head],
+[data-hero-scroll][data-hero-state='5'] [data-hero-head] {
+  visibility: hidden;
+}
+
+/* State 5 — the pillar labels.
+   The particle icons peel off the mark and sit at 25/50/75% of the frame
+   height (see iconYs in mark.js); each label row is vertically centred on
+   its icon and SLIDES IN LEFT TO RIGHT beside it, out of the mark, in the
+   direction the peel travels. Positioned in screen space rather than pinned
+   to the geometry, because the icons breathe and anchored text would drift
+   with them.
+
+   `transform` carries both the entrance travel (x) and the vertical
+   centring (y, constant across both states). That is safe here because the
+   `translate` PROPERTY is unused — the Lightning CSS hazard was translate
+   and transform being folded together during minification; a single
+   transform cannot fold into itself. */
+[data-hero-scroll] [data-hero-msg] {
+  left: 72%;
+  opacity: 0;
+  filter: blur(6px);
+  transform: translate(-72px, -50%);
+  transition:
+    opacity 900ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 900ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 900ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+[data-hero-scroll] [data-hero-msg='0'] {
+  top: 25%;
+}
+
+[data-hero-scroll] [data-hero-msg='1'] {
+  top: 50%;
+}
+
+[data-hero-scroll] [data-hero-msg='2'] {
+  top: 75%;
+}
+
+/* `none`, not `blur(0)`. Lightning CSS minifies `blur(0)` down to a bare
+   `blur()`, and whether that parses is ambiguous enough that a browser
+   dropping the declaration would leave every message permanently blurred and
+   unreadable. `none` cannot be mangled, and it interpolates against
+   `blur(6px)` identically because an absent filter is the identity value. */
+[data-hero-scroll] [data-hero-msg].is-in {
+  opacity: 1;
+  filter: none;
+  transform: translate(0, -50%);
+}
+
+/* Small viewports: tuck toward the icon column; drop the support line. */
+@media (max-width: 768px) {
+  [data-hero-scroll] [data-hero-msg] {
+    left: 55%;
+    right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  [data-hero-scroll] [data-hero-msg] > span:last-child {
+    display: none;
+  }
+}
+
+/* State 4, Möbius hero variant — THE MESSAGE. One semantic statement
+   inside the loop of the already-formed, still-living ring: the strip
+   surrounds the words rather than the words covering the strip. Hidden
+   state sits a little low and blurred; the rise travels up into place.
+   Real content, so visibility gates it out of the accessibility tree
+   until the driver latches `is-in` — and the delayed visibility on the
+   way out lets the exit animate while still reversing cleanly.
+
+   As with [data-hero-msg], `transform` carries both the centring and the
+   travel; the `translate` PROPERTY stays unused so the Lightning CSS
+   folding hazard cannot apply. */
+[data-hero-scroll] [data-hero-message] {
+  position: absolute;
+  left: 50%;
+  top: 51%;
+  margin: 0;
+  max-width: min(14ch, 84vw);
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  filter: blur(6px);
+  transform: translate(-50%, calc(-50% + 32px)) scale(0.96);
+  transition:
+    opacity 650ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 650ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 650ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s 650ms;
+}
+
+/* `none`, not `blur(0)` — same minifier rationale as [data-hero-msg]. */
+[data-hero-scroll] [data-hero-message].is-in {
+  opacity: 1;
+  visibility: visible;
+  filter: none;
+  transform: translate(-50%, -50%) scale(1);
+  transition-delay: 0s;
+}
+
+/* Globe hero variant — the descriptive block, RIGHT of the globe. Real
+   content with clickable CTAs, so visibility gates it out of the tab
+   order until it is latched; the transition delays visibility on the way
+   OUT so the exit animates, and clears the delay on the way in. It
+   arrives in the same scroll window that reveals the globe.
+
+   Single `transform` property throughout — Lightning CSS folding hazard,
+   see [data-hero-msg]. */
+[data-hero-scroll] [data-hero-desc] {
+  right: clamp(24px, 7vw, 128px);
+  top: 50%;
+  max-width: min(30rem, 38vw);
+  opacity: 0;
+  visibility: hidden;
+  filter: blur(6px);
+  transform: translate(28px, -50%);
+  transition:
+    opacity 800ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 800ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 800ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s linear 800ms;
+}
+
+/* `none`, not `blur(0)` — same minifier rationale as [data-hero-msg]. */
+[data-hero-scroll] [data-hero-desc].is-in {
+  opacity: 1;
+  visibility: visible;
+  filter: none;
+  transform: translate(0, -50%);
+  transition:
+    opacity 800ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 800ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 800ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    visibility 0s;
+}
+
+/* Small viewports: the block tucks to the bottom, full width, OVER the
+   globe's lower limb rather than beside it — so it carries its own
+   scrim: readable copy without dimming the whole scene. */
+@media (max-width: 768px) {
+  [data-hero-scroll] [data-hero-desc] {
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: 4%;
+    max-width: none;
+    padding: 24px 18px 20px;
+    border-radius: 16px;
+    background: linear-gradient(
+      to top,
+      rgba(2, 15, 24, 0.92) 55%,
+      rgba(2, 15, 24, 0.55) 82%,
+      rgba(2, 15, 24, 0)
+    );
+    transform: translate(0, 28px);
+  }
+
+  [data-hero-scroll] [data-hero-desc].is-in {
+    transform: translate(0, 0);
+  }
+}
+
+/* The formed globe is draggable; the cursor says so. Scoped to the globe
+   variant — the Möbius and mark heroes are not draggable and must not
+   advertise a grab. The element adds .globe-dragging while a drag is live. */
+[data-hero-scroll]:has(zare-globe-write)[data-hero-state='4'] section,
+[data-hero-scroll]:has(zare-globe-write)[data-hero-state='5'] section {
+  cursor: grab;
+}
+
+[data-hero-scroll] section.globe-dragging {
+  cursor: grabbing;
+}
+
+/* Addis Ababa hover label, appended inside <zare-globe-write>. */
+zare-globe-write .globe-label {
+  position: absolute;
+  transform: translate(-50%, -140%);
+  pointer-events: none;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: #10cfd1;
+  background: rgba(2, 15, 24, 0.88);
+  border: 1px solid rgba(64, 193, 199, 0.3);
+  padding: 5px 9px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+zare-globe-write .globe-label.on {
+  opacity: 1;
+}
+
+/* Reveal.
+   Hidden states exist ONLY under html.anim, which AnimGate adds when it can
+   guarantee the reveal will run. Without JS, in a prerendered snapshot, or
+   under reduced motion, the class is absent and every element is visible at
+   rest. This is deliberate: a hidden-by-default reveal is how content
+   silently disappears in environments where IntersectionObserver is frozen. */
+html.anim [data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity var(--duration-reveal) var(--ease-enter),
+    transform var(--duration-reveal) var(--ease-enter);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+html.anim [data-reveal='fade'] {
+  transform: none;
+}
+
+html.anim [data-reveal='clip'] {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path var(--duration-section) var(--ease-enter);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+html.anim [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.anim [data-reveal],
+  html.anim [data-reveal='clip'] {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    transition: none;
+  }
+}

@@ -1,0 +1,19 @@
+/* Mantine stylesheets, scoped to the route groups that actually use them:
+   `(marketing)` and `admin`. Previously these were imported by globals.css,
+   which the ROOT layout loads, so every page on the site downloaded the admin
+   panel's stylesheet including the rebuilt marketing routes.
+
+   Imported into the `mantine` cascade layer rather than unlayered. The layer
+   is declared in globals.css as `@layer theme, base, mantine`, so:
+
+     - Mantine still outranks Tailwind's theme and preflight layers
+     - Tailwind utilities stay UNLAYERED, and unlayered always beats any
+       layer, so a utility still wins over a Mantine rule
+
+   That is the same effective cascade as before, but it no longer depends on
+   these files being imported before Tailwind. Which is what makes moving them
+   out of the root safe. */
+
+@import '@mantine/core/styles.css' layer(mantine);
+@import '@mantine/notifications/styles.css' layer(mantine);
+@import '@mantine/dates/styles.css' layer(mantine);
